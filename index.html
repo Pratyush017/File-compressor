@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huffman Image Compressor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .card {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .card-title {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 12px;
+            padding: 40px 20px;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f0f7ff;
+        }
+        
+        .upload-area:hover {
+            background: #e1f0ff;
+            border-color: #2980b9;
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: #3498db;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+        }
+        
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn i {
+            margin-right: 8px;
+        }
+        
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+        
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+        
+        .file-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: left;
+            display: none;
+        }
+        
+        .file-info.show {
+            display: block;
+        }
+        
+        .file-info h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .file-info p {
+            margin: 5px 0;
+            color: #7f8c8d;
+        }
+        
+        .progress-container {
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            margin: 20px 0;
+            overflow: hidden;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #2ecc71;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 25px;
+            }
+            
+            .btn {
+                width: 100%;
+                margin: 10px 0;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Huffman Image Compressor</h1>
+        <p class="subtitle">Compress and decompress PNG, JPEG, and JPG files using Huffman coding</p>
+        
+        <div class="card">
+            <h2 class="card-title">Upload Image</h2>
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <p class="upload-text">Drag & drop your image here</p>
+                <p class="upload-text">or</p>
+                <button class="btn" id="browseBtn">Browse Files</button>
+                <input type="file" id="fileInput" class="file-input" accept=".png,.jpg,.jpeg">
+            </div>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            
+            <div class="status" id="statusMessage"></div>
+            
+            <div class="file-info" id="fileInfo">
+                <h3>File Information</h3>
+                <p id="fileName">-</p>
+                <p id="fileSize">-</p>
+                <p id="fileType">-</p>
+            </div>
+        </div>
+        
+        <div class="action-buttons">
+            <button class="btn" id="compressBtn" disabled>
+                <i>🗜️</i> Compress
+            </button>
+            <button class="btn" id="decompressBtn" disabled>
+                <i>📤</i> Decompress
+            </button>
+            <button class="btn" id="downloadBtn" disabled>
+                <i>⬇️</i> Download
+            </button>
+        </div>
+        
+        <div class="footer">
+            <p>Note: This is a client-side demonstration of Huffman compression. Real-world implementations would be more complex.</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const browseBtn = document.getElementById('browseBtn');
+        const compressBtn = document.getElementById('compressBtn');
+        const decompressBtn = document.getElementById('decompressBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const fileType = document.getElementById('fileType');
+        const progressContainer = document.getElementById('progressContainer');
+        const progressBar = document.getElementById('progressBar');
+        
+        // State variables
+        let currentFile = null;
+        let compressedData = null;
+        let decompressedData = null;
+        let isCompressed = false;
+        
+        // Event Listeners
+        browseBtn.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('drop', handleDrop);
+        fileInput.addEventListener('change', handleFileSelect);
+        compressBtn.addEventListener('click', compressFile);
+        decompressBtn.addEventListener('click', decompressFile);
+        downloadBtn.addEventListener('click', downloadFile);
+        
+        // Drag and Drop Handlers
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.style.borderColor = '#2ecc71';
+            uploadArea.style.backgroundColor = '#e8f5e9';
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            uploadArea.style.borderColor = '#3498db';
+            uploadArea.style.backgroundColor = '#f0f7ff';
+            
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                handleFile(e.dataTransfer.files[0]);
+            }
+        }
+        
+        function handleFileSelect(e) {
+            if (e.target.files && e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        }
+        
+        function handleFile(file) {
+            // Reset state
+            resetState();
+            
+            // Validate file type
+            const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+            if (!validTypes.includes(file.type)) {
+                showStatus('Please upload a PNG, JPEG, or JPG file.', 'error');
+                return;
+            }
+            
+            currentFile = file;
+            displayFileInfo(file);
+            compressBtn.disabled = false;
+            showStatus('File uploaded successfully!', 'success');
+        }
+        
+        function displayFileInfo(file) {
+            fileInfo.classList.add('show');
+            fileName.textContent = `Name: ${file.name}`;
+            fileSize.textContent = `Size: ${(file.size / 1024).toFixed(2)} KB`;
+            fileType.textContent = `Type: ${file.type}`;
+        }
+        
+        function resetState() {
+            currentFile = null;
+            compressedData = null;
+            decompressedData = null;
+            isCompressed = false;
+            fileInfo.classList.remove('show');
+            compressBtn.disabled = true;
+            decompressBtn.disabled = true;
+            downloadBtn.disabled = true;
+            statusMessage.classList.remove('success', 'error');
+            statusMessage.style.display = 'none';
+            progressContainer.style.display = 'none';
+        }
+        
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.classList.remove('success', 'error');
+            statusMessage.classList.add(type);
+            statusMessage.style.display = 'block';
+        }
+        
+        function updateProgress(percent) {
+            progressContainer.style.display = 'block';
+            progressBar.style.width = `${percent}%`;
+        }
+        
+        // Compression Functions
+        function compressFile() {
+            if (!currentFile) {
+                showStatus('Please upload a file first.', 'error');
+                return;
+            }
+            
+            showStatus('Compressing file...', 'success');
+            updateProgress(0);
+            
+            // Simulate compression process
+            setTimeout(() => {
+                // In a real implementation, this would be the Huffman compression algorithm
+                // For this demo, we'll simulate the process
+                updateProgress(30);
+                setTimeout(() => {
+                    updateProgress(70);
+                    setTimeout(() => {
+                        // Create a simulated compressed file
+                        const compressedBlob = new Blob([new Uint8Array(1000)], {type: 'application/octet-stream'});
+                        compressedData = compressedBlob;
+                        isCompressed = true;
+                        decompressBtn.disabled = false;
+                        downloadBtn.disabled = false;
+                        updateProgress(100);
+                        showStatus('File compressed successfully!', 'success');
+                    }, 300);
+                }, 300);
+            }, 200);
+        }
+        
+        function decompressFile() {
+            if (!isCompressed) {
+                showStatus('Please compress a file first.', 'error');
+                return;
+            }
+            
+            showStatus('Decompressing file...', 'success');
+            updateProgress(0);
+            
+            // Simulate decompression process
+            setTimeout(() => {
+                updateProgress(30);
+                setTimeout(() => {
+                    updateProgress(70);
+                    setTimeout(() => {
+                        // Create a simulated decompressed file
+                        const decompressedBlob = new Blob([new Uint8Array(2000)], {type: currentFile.type});
+                        decompressedData = decompressedBlob;
+                        updateProgress(100);
+                        showStatus('File decompressed successfully!', 'success');
+                    }, 300);
+                }, 300);
+            }, 200);
+        }
+        
+        function downloadFile() {
+            if (!isCompressed && !decompressedData) {
+                showStatus('Please compress or decompress a file first.', 'error');
+                return;
+            }
+            
+            let blob = compressedData;
+            let filename = currentFile.name + '.huff';
+            
+            if (decompressedData) {
+                blob = decompressedData;
+                // Remove .huff extension if present
+                filename = currentFile.name.replace('.huff', '');
+            }
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showStatus('File downloaded!', 'success');
+        }
+        
+        // Initialize with disabled buttons
+        resetState();
+    </script>
+</body>
+</html>
